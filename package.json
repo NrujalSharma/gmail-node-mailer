@@ -1,0 +1,27 @@
+{
+  "name": "gmail-node-mailer",
+  "version": "1.0.0",
+  "description": "Email sender with nodemailer and gmail",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mailer",
+    "nodejs",
+    "node-mailer",
+    "gmail"
+  ],
+  "author": "NrujalSharma",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^4.4.1",
+    "nodemailer": "^6.4.17"
+  },
+  "engines": {
+    "node": "12.x"
+  }
+}
