@@ -6,10 +6,20 @@ const helmet = require("helmet");
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+
 const corsOptions = {
-    methods: ['GET', 'POST'],
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
+
+app.use(cors(corsOptions));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -21,7 +31,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASSWORD
+        pass: process.env.MAIL_PASSWORD,
     }
 });
 
@@ -29,8 +39,7 @@ app.get('/', (req, res) => {
     res.send('Up and running!');
 });
 
-// app.options('/tax-and-vat/contact-us-form', cors({ ...corsOptions, origin: process.env.TAX_AND_VAT_ORIGIN }))
-app.post('/tax-and-vat/contact-us-form', cors({ ...corsOptions, origin: process.env.TAX_AND_VAT_ORIGIN }), async (req, res) => {
+app.post('/tax-and-vat/contact-us-form', async (req, res) => {
     const { name, email, message } = req.body;
 
     const mailOptions = {
@@ -41,7 +50,7 @@ app.post('/tax-and-vat/contact-us-form', cors({ ...corsOptions, origin: process.
             name: ${name}
             email: ${email}
             message: ${message}
-        `
+        `,
     };
 
     try {
@@ -53,15 +62,14 @@ app.post('/tax-and-vat/contact-us-form', cors({ ...corsOptions, origin: process.
     }
 });
 
-// app.options('/vaccine-session/inform', cors({ ...corsOptions, origin: process.env.VACCINE_APPOINTMENT_ORIGIN }))
-app.post('/vaccine-session/inform', cors({ ...corsOptions, origin: process.env.VACCINE_APPOINTMENT_ORIGIN }), async (req, res) => {
+app.post('/vaccine-session/inform', async (req, res) => {
     const { data } = req.body;
 
     const mailOptions = {
         from: process.env.MAIL_USER,
         to: process.env.VACCINE_APPOINTMENT_EMAIL_RECIPIENT,
         subject: 'Vaccines Available',
-        text: JSON.stringify(data, null, 2)
+        text: JSON.stringify(data, null, 2),
     };
 
     try {
