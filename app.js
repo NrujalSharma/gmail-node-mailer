@@ -31,7 +31,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASSWORD,
+        pass: process.env.MAIL_PASSWORD
     }
 });
 
@@ -50,7 +50,7 @@ app.post('/tax-and-vat/contact-us-form', async (req, res) => {
             name: ${name}
             email: ${email}
             message: ${message}
-        `,
+        `
     };
 
     try {
@@ -69,7 +69,7 @@ app.post('/vaccine-session/inform', async (req, res) => {
         from: process.env.MAIL_USER,
         to: process.env.VACCINE_APPOINTMENT_EMAIL_RECIPIENT,
         subject: 'Vaccines Available',
-        text: JSON.stringify(data, null, 2),
+        text: JSON.stringify(data, null, 2)
     };
 
     try {
