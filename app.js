@@ -6,8 +6,16 @@ const helmet = require("helmet");
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+
 const corsOptions = {
-    origin: process.env.ALLOWED_ORIGINS || true,
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    },
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
@@ -18,7 +26,7 @@ app.use(bodyParser.json());
 app.use(helmet());
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -31,7 +39,7 @@ app.get('/', (req, res) => {
     res.send('Up and running!');
 });
 
-app.post('/tax-and-vat/contact-us-form', (req, res) => {
+app.post('/tax-and-vat/contact-us-form', async (req, res) => {
     const { name, email, message } = req.body;
 
     const mailOptions = {
@@ -46,15 +54,41 @@ app.post('/tax-and-vat/contact-us-form', (req, res) => {
     };
 
     try {
-        transporter.sendMail(mailOptions, function (error, info) {
-            let status = 200;
-            if (error) status = 500;
-            res.status(status).send();
-        });
+        await sendMail(mailOptions);
+        res.status(200).send();
     } catch (error) {
+        console.error(error);
         res.status(500).send();
     }
 });
+
+app.post('/vaccine-session/inform', async (req, res) => {
+    const { data } = req.body;
+
+    const mailOptions = {
+        from: process.env.MAIL_USER,
+        to: process.env.VACCINE_APPOINTMENT_EMAIL_RECIPIENT,
+        subject: 'Vaccines Available',
+        text: JSON.stringify(data, null, 2),
+    };
+
+    try {
+        await sendMail(mailOptions);
+        res.status(200).send();
+    } catch (error) {
+        console.error(error);
+        res.status(500).send();
+    }
+});
+
+function sendMail(mailOptions) {
+    return new Promise((resolve, reject) => {
+        transporter.sendMail(mailOptions, function (error, _) {
+            if (error) reject(error);
+            resolve();
+        });
+    });
+}
 
 app.listen(port, () => {
     console.log(`Mailer app listening at port: ${port}`)
